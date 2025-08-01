@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Heart, User, Phone, MapPin, AlertCircle } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
-import { getCurrentUser } from '../../lib/auth'
-import Button from '../../components/ui/Button'
-import Input from '../../components/ui/Input'
+import { supabase } from '../../../lib/supabase'
+import { getCurrentUser } from '../../../lib/auth'
+import Button from '../../../components/ui/Button'
+import Input from '../../../components/ui/Input'
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1)
@@ -112,7 +112,7 @@ export default function OnboardingPage() {
         <div className="text-center mb-8">
           <Heart className="h-12 w-12 text-blue-600 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Let's set up your health profile
+            Lets set up your health profile
           </h1>
           <p className="text-gray-600">
             This helps us provide personalized health recommendations

@@ -12,9 +12,9 @@ import {
   LogOut,
   User
 } from 'lucide-react'
-import { getCurrentUser, signOut } from '../../lib/auth'
-import { supabase } from '../../lib/supabase'
-import Button from '../../components/ui/Button'
+import { getCurrentUser, signOut } from '../../../lib/auth'
+import { supabase } from '../../../lib/supabase'
+import Button from '../../../components/ui/Button'
 
 export default function DashboardPage() {
   const [user, setUser] = useState(null)

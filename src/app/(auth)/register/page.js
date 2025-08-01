@@ -3,31 +3,58 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Heart, Eye, EyeOff } from 'lucide-react'
-import { signIn } from '../../lib/auth'
-import Button from '../../components/ui/Button'
-import Input from '../../components/ui/Input'
+import { signUp } from '../../../lib/auth'
+import Button from '../../../components/ui/Button'
+import Input from '../../../components/ui/Input'
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+export default function RegisterPage() {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    fullName: ''
+  })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { data, error: authError } = await signIn(email, password)
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      setLoading(false)
+      return
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters')
+      setLoading(false)
+      return
+    }
+
+    const { data, error: authError } = await signUp(
+      formData.email, 
+      formData.password,
+      { full_name: formData.fullName }
+    )
     
     if (authError) {
       setError(authError.message)
       setLoading(false)
     } else {
-      // Check if user has completed onboarding
-      router.push('/dashboard')
+      // Redirect to onboarding
+      router.push('/onboarding')
     }
   }
 
@@ -39,12 +66,12 @@ export default function LoginPage() {
             <Heart className="h-12 w-12 text-blue-600" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-            Welcome back
+            Create your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Do not have an account?{' '}
-            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-              Sign up here
+            Already have an account?{' '}
+            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+              Sign in here
             </Link>
           </p>
         </div>
@@ -58,10 +85,20 @@ export default function LoginPage() {
             )}
             
             <Input
+              label="Full Name"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              required
+              placeholder="Enter your full name"
+            />
+            
+            <Input
               label="Email address"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               required
               placeholder="Enter your email"
             />
@@ -70,10 +107,11 @@ export default function LoginPage() {
               <Input
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
                 required
-                placeholder="Enter your password"
+                placeholder="Create a password"
               />
               <button
                 type="button"
@@ -83,13 +121,23 @@ export default function LoginPage() {
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            
+            <Input
+              label="Confirm Password"
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              placeholder="Confirm your password"
+            />
 
             <Button
               type="submit"
               className="w-full"
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
         </div>

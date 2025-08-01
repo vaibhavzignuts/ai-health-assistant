@@ -19,7 +19,7 @@ import {
   ExternalLink,
   Filter
 } from 'lucide-react'
-import { getCurrentUser } from '../../lib/auth'
+import { getCurrentUser } from '../../../lib/auth'
 
 export default function FacilityFinderPage() {
   const [user, setUser] = useState(null)

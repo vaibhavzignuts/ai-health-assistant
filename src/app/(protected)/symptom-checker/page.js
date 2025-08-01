@@ -13,8 +13,8 @@ import {
   AlertCircle,
   Info
 } from 'lucide-react'
-import { getCurrentUser } from '../../lib/auth'
-import { useSymptomAnalyzer } from '../../hooks/useSymptomAnalyzer'
+import { getCurrentUser } from '../../../lib/auth'
+import { useSymptomAnalyzer } from '../../../hooks/useSymptomAnalyzer'
 
 export default function SymptomCheckerPage() {
   const [user, setUser] = useState(null)
