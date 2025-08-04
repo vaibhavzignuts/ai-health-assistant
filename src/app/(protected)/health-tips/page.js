@@ -18,6 +18,8 @@ import {
   ChevronUp,
   Info
 } from 'lucide-react'
+import { useProtectedProfile } from '@/hooks/useProtectedProfile'
+import Loader from '@/components/ui/Loader'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -25,13 +27,14 @@ const supabase = createClient(
 )
 
 export default function HealthTips() {
-  const [profile, setProfile] = useState(null)
+
   const [healthTips, setHealthTips] = useState(null)
-  const [loading, setLoading] = useState(true)
+
   const [generating, setGenerating] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('general')
   const [expandedSections, setExpandedSections] = useState({})
   const router = useRouter()
+    const {  profile, loading } = useProtectedProfile()
 
   const categories = [
     { id: 'general', name: 'General Health', icon: Heart },
@@ -41,39 +44,11 @@ export default function HealthTips() {
     { id: 'preventive', name: 'Preventive Care', icon: Shield }
   ]
 
-  useEffect(() => {
-    checkUserAndProfile()
-  }, [])
 
-  const checkUserAndProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      // Fetch user profile
-      const { data: profileData } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-      
-      if (!profileData) {
-        router.push('/onboarding')
-        return
-      }
-      
-      setProfile(profileData)
-      await generateHealthTips(user.id, 'general')
-      setLoading(false)
-    } catch (error) {
-      console.error('Error checking user profile:', error)
-      setLoading(false)
-    }
+  if(loading){
+    <Loader/>
   }
+
 
   const generateHealthTips = async (userId, category = 'general') => {
     setGenerating(true)
@@ -320,7 +295,7 @@ export default function HealthTips() {
                                   {tip.dosDonts && (
                                     <div className="grid md:grid-cols-2 gap-4">
                                       <div>
-                                        <h5 className="font-medium text-green-700 mb-2">✓ Do's</h5>
+                                        <h5 className="font-medium text-green-700 mb-2">✓ Do</h5>
                                         <ul className="text-sm text-gray-700 space-y-1">
                                           {tip.dosDonts.dos.map((item, i) => (
                                             <li key={i} className="flex items-start">
@@ -331,7 +306,7 @@ export default function HealthTips() {
                                         </ul>
                                       </div>
                                       <div>
-                                        <h5 className="font-medium text-red-700 mb-2">✗ Don'ts</h5>
+                                        <h5 className="font-medium text-red-700 mb-2">✗ Donts</h5>
                                         <ul className="text-sm text-gray-700 space-y-1">
                                           {tip.dosDonts.donts.map((item, i) => (
                                             <li key={i} className="flex items-start">
@@ -646,7 +621,7 @@ export default function HealthTips() {
               <div className="bg-white rounded-lg shadow-sm p-8 text-center">
                 <Heart className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No Health Tips Generated</h3>
-                <p className="text-gray-600 mb-4">Click "Refresh Tips" to generate personalized health recommendations.</p>
+                <p className="text-gray-600 mb-4">Click Refresh Tip to generate personalized health recommendations.</p>
                 <button
                   onClick={() => profile && generateHealthTips(profile.id, selectedCategory)}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
