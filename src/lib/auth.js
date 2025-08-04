@@ -1,3 +1,4 @@
+import { getRedirectURL } from '@/utils/utils'
 import { supabase } from './supabase'
 
 
@@ -6,7 +7,8 @@ export const signUp = async (email, password, userData) => {
     email,
     password,
     options: {
-      data: userData
+      data: userData,
+       emailRedirectTo: getRedirectURL()
     }
   })
   return { data, error }
