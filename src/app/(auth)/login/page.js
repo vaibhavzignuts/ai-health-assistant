@@ -1,11 +1,12 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Heart, Eye, EyeOff } from 'lucide-react'
 import { signIn } from '../../../lib/auth'
 import Button from '../../../components/ui/Button'
 import Input from '../../../components/ui/Input'
+import { getCurrentUser, signOut } from '../../../lib/auth'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -14,6 +15,38 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+
+
+    useEffect(() => {
+      const checkUserAndProfile = async () => {
+        const currentUser = await getCurrentUser()
+        console.log(currentUser,'currentUser')
+        if (currentUser) {
+          router.push('/dashboard')
+          return
+        }
+        
+        setUser(currentUser)
+        
+        // Fetch user profile
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single()
+        
+        if (!profileData) {
+          // User hasn't completed onboarding
+          router.push('/onboarding')
+          return
+        }
+        
+        setProfile(profileData)
+        setLoading(false)
+      }
+      
+      checkUserAndProfile()
+    }, [router])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -26,6 +59,7 @@ export default function LoginPage() {
       setError(authError.message)
       setLoading(false)
     } else {
+      console.log('jkjkjk')
       // Check if user has completed onboarding
       router.push('/dashboard')
     }

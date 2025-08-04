@@ -22,6 +22,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
+
+  
+
   useEffect(() => {
     const checkUserAndProfile = async () => {
       const currentUser = await getCurrentUser()
@@ -97,13 +100,7 @@ export default function DashboardPage() {
       href: '/health-tips',
       color: 'bg-orange-500'
     },
-    {
-      title: 'Emergency Contacts',
-      description: 'Quick access to emergency help',
-      icon: Phone,
-      href: '/emergency',
-      color: 'bg-red-500'
-    }
+   
   ]
 
   return (
@@ -187,7 +184,7 @@ export default function DashboardPage() {
         )}
 
         {/* Quick Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
           {quickActions.map((action, index) => {
             const IconComponent = action.icon
             return (

@@ -1,4 +1,3 @@
-// app/api/find-facility/route.js
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -12,11 +11,11 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 6371 // Earth's radius in kilometers
   const dLat = (lat2 - lat1) * Math.PI / 180
   const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return R * c
 }
 
@@ -45,15 +44,13 @@ export async function GET(request) {
     }
 
     // Filter by location (city-based search if no coordinates provided)
-    if (location && !lat && !lng) {
+    if (location && (!lat || !lng)) {
       query = query.ilike('city', `%${location}%`)
     }
 
     const { data: facilities, error } = await query.order('name')
 
-    if (error) {
-      throw error
-    }
+    if (error) throw error
 
     let results = facilities || []
 
@@ -63,15 +60,15 @@ export async function GET(request) {
         .map(facility => {
           if (facility.latitude && facility.longitude) {
             const distance = calculateDistance(
-              lat, lng, 
-              parseFloat(facility.latitude), 
+              lat, lng,
+              parseFloat(facility.latitude),
               parseFloat(facility.longitude)
             )
             return { ...facility, distance: Math.round(distance * 10) / 10 }
           }
           return { ...facility, distance: null }
         })
-        .filter(facility => !facility.distance || facility.distance <= radius)
+        .filter(facility => facility.distance === null || facility.distance <= radius)
         .sort((a, b) => {
           if (a.distance === null) return 1
           if (b.distance === null) return -1
@@ -81,12 +78,14 @@ export async function GET(request) {
 
     // Save search history
     if (location || (lat && lng)) {
+      const search_location = location || `${lat}, ${lng}`
+
       await supabase
         .from('user_facility_searches')
         .insert([
           {
             user_id: userId,
-            search_location: location || `${lat}, ${lng}`,
+            search_location,
             facility_type: facilityType,
             search_radius: radius,
             results_count: results.length
@@ -109,7 +108,6 @@ export async function GET(request) {
   }
 }
 
-// Get user's search history
 export async function POST(request) {
   try {
     const { userId, limit = 10 } = await request.json()
@@ -128,9 +126,7 @@ export async function POST(request) {
       .order('created_at', { ascending: false })
       .limit(limit)
 
-    if (error) {
-      throw error
-    }
+    if (error) throw error
 
     return NextResponse.json({
       success: true,
