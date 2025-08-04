@@ -23,11 +23,9 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
-    const location = searchParams.get('location')
+    const city = searchParams.get('city')
     const facilityType = searchParams.get('type') || 'all'
     const radius = parseInt(searchParams.get('radius')) || 10
-    const lat = parseFloat(searchParams.get('lat'))
-    const lng = parseFloat(searchParams.get('lng'))
 
     if (!userId) {
       return NextResponse.json(
@@ -36,16 +34,21 @@ export async function GET(request) {
       )
     }
 
+    if (!city) {
+      return NextResponse.json(
+        { error: 'City is required' },
+        { status: 400 }
+      )
+    }
+
     let query = supabase.from('healthcare_facilities').select('*')
+
+    // Filter by city (exact match for better results)
+    query = query.eq('city', city)
 
     // Filter by facility type if specified
     if (facilityType !== 'all') {
       query = query.eq('type', facilityType)
-    }
-
-    // Filter by location (city-based search if no coordinates provided)
-    if (location && (!lat || !lng)) {
-      query = query.ilike('city', `%${location}%`)
     }
 
     const { data: facilities, error } = await query.order('name')
@@ -54,49 +57,37 @@ export async function GET(request) {
 
     let results = facilities || []
 
-    // Calculate distances if coordinates are provided
-    if (lat && lng && results.length > 0) {
-      results = results
-        .map(facility => {
-          if (facility.latitude && facility.longitude) {
-            const distance = calculateDistance(
-              lat, lng,
-              parseFloat(facility.latitude),
-              parseFloat(facility.longitude)
-            )
-            return { ...facility, distance: Math.round(distance * 10) / 10 }
-          }
-          return { ...facility, distance: null }
-        })
-        .filter(facility => facility.distance === null || facility.distance <= radius)
-        .sort((a, b) => {
-          if (a.distance === null) return 1
-          if (b.distance === null) return -1
-          return a.distance - b.distance
-        })
-    }
+    // Sort by emergency services first, then by name
+    results = results.sort((a, b) => {
+      // Emergency services first
+      if (a.emergency_services && !b.emergency_services) return -1
+      if (!a.emergency_services && b.emergency_services) return 1
+      
+      // Then by rating (higher first)
+      if (b.rating !== a.rating) return b.rating - a.rating
+      
+      // Finally by name
+      return a.name.localeCompare(b.name)
+    })
 
     // Save search history
-    if (location || (lat && lng)) {
-      const search_location = location || `${lat}, ${lng}`
-
-      await supabase
-        .from('user_facility_searches')
-        .insert([
-          {
-            user_id: userId,
-            search_location,
-            facility_type: facilityType,
-            search_radius: radius,
-            results_count: results.length
-          }
-        ])
-    }
+    await supabase
+      .from('user_facility_searches')
+      .insert([
+        {
+          user_id: userId,
+          search_location: city,
+          facility_type: facilityType,
+          search_radius: radius,
+          results_count: results.length
+        }
+      ])
 
     return NextResponse.json({
       success: true,
       data: results,
-      count: results.length
+      count: results.length,
+      city: city
     })
 
   } catch (error) {
