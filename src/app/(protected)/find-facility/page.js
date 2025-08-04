@@ -169,26 +169,36 @@ export default function FacilityFinderPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center py-4">
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mr-4"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Back to Dashboard</span>
-            </button>
-            <div className="flex items-center space-x-3">
-              <MapPin className="h-8 w-8 text-blue-600" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Find Healthcare Facilities</h1>
-                <p className="text-sm text-gray-600">Locate nearby hospitals, clinics, and pharmacies</p>
-              </div>
-            </div>
-          </div>
+<header className="bg-white shadow-sm border-b">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center py-4 space-y-3 sm:space-y-0 sm:space-x-6">
+
+      {/* Back Button */}
+      <button
+        onClick={() => router.push('/dashboard')}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span className="text-sm sm:text-base">Back to Dashboard</span>
+      </button>
+
+      {/* Title & Description */}
+      <div className="flex items-start sm:items-center space-x-3">
+        <MapPin className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+        <div>
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900">
+            Find Healthcare Facilities
+          </h1>
+          <p className="text-sm text-gray-600">
+            Locate nearby hospitals, clinics, and pharmacies
+          </p>
         </div>
-      </header>
+      </div>
+
+    </div>
+  </div>
+</header>
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Beta Notice */}
