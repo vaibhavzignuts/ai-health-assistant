@@ -16,7 +16,8 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
-  Info
+  Info,
+  ArrowLeft
 } from 'lucide-react'
 import { useProtectedProfile } from '@/hooks/useProtectedProfile'
 import Loader from '@/components/ui/Loader'
@@ -123,26 +124,43 @@ export default function HealthTips() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Health Tips</h1>
-                <p className="text-gray-600 mt-1">Personalized recommendations for your health</p>
-              </div>
-              <button
-                onClick={() => profile && generateHealthTips(profile.id, selectedCategory)}
-                disabled={generating}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${generating ? 'animate-spin' : ''}`} />
-                {generating ? 'Generating...' : 'Refresh Tips'}
-              </button>
-            </div>
-          </div>
+<div className="bg-white shadow-sm border-b">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="py-4 sm:py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
+
+      {/* Left section: Back + Title */}
+      <div className="flex flex-col gap-4 sm:gap-2">
+        {/* Back Button */}
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium w-fit"
+        >
+          <ArrowLeft className="h-5 w-5" />
+          <span className="text-sm sm:text-base">Back to Dashboard</span>
+        </button>
+
+        {/* Heading and Subtext */}
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Health Tips</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
+            Personalized recommendations for your health
+          </p>
         </div>
       </div>
+
+      {/* Right section: Refresh button */}
+      <button
+        onClick={() => profile && generateHealthTips(profile.id, selectedCategory)}
+        disabled={generating}
+        className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-all duration-200 w-full sm:w-auto"
+      >
+        <RefreshCw className={`h-4 w-4 mr-2 ${generating ? "animate-spin" : ""}`} />
+        {generating ? "Generating..." : "Refresh Tips"}
+      </button>
+    </div>
+  </div>
+</div>
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
