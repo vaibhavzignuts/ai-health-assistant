@@ -103,38 +103,42 @@ export default function LandingPage() {
       </div>
 
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md shadow-lg border-b border-blue-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3 group">
-              <div className="relative">
-                <Heart className="h-10 w-10 text-blue-600 transform group-hover:scale-110 transition-transform duration-200" />
-                <div className="absolute -inset-1 bg-blue-600 rounded-full opacity-20 animate-ping"></div>
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                HealthCare+
-              </span>
-            </div>
-            {isAuthenticated ? (
-              <Link href="/dashboard">
-                <Button className="flex items-center space-x-2">
-                  <span>Dashboard</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            ) : (
-              <div className="flex space-x-4">
-                <Link href="/login">
-                  <Button variant="outline">Login</Button>
-                </Link>
-                <Link href="/register">
-                  <Button>Sign Up</Button>
-                </Link>
-              </div>
-            )}
-          </div>
+<header className="bg-white/80 backdrop-blur-md shadow-lg border-b border-blue-100 sticky top-0 z-50">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="flex flex-col sm:flex-row justify-between items-center py-4 sm:py-6 space-y-4 sm:space-y-0">
+      {/* Logo and Title */}
+      <div className="flex items-center space-x-3 group">
+        <div className="relative">
+          <Heart className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600 transform group-hover:scale-110 transition-transform duration-200" />
+          <div className="absolute -inset-1 bg-blue-600 rounded-full opacity-20 animate-ping"></div>
         </div>
-      </header>
+        <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          HealthCare+
+        </span>
+      </div>
+
+      {/* Navigation Buttons */}
+      {isAuthenticated ? (
+        <Link href="/dashboard">
+          <Button className="flex items-center space-x-2 w-full sm:w-auto justify-center">
+            <span>Dashboard</span>
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </Link>
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 w-full sm:w-auto">
+          <Link href="/login">
+            <Button variant="outline" className="w-full sm:w-auto">Login</Button>
+          </Link>
+          <Link href="/register">
+            <Button className="w-full sm:w-auto">Sign Up</Button>
+          </Link>
+        </div>
+      )}
+    </div>
+  </div>
+</header>
+
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative">
