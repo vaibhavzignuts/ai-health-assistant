@@ -6,11 +6,13 @@ import { supabase } from '../../../lib/supabase'
 import { getCurrentUser } from '../../../lib/auth'
 import Button from '../../../components/ui/Button'
 import Input from '../../../components/ui/Input'
+import { useProtectedUser } from '@/hooks/useProtectedUser'
+import Loader from '@/components/ui/Loader'
 
 export default function OnboardingPage() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
-  const [user, setUser] = useState(null)
+
   const [formData, setFormData] = useState({
     age: '',
     gender: '',
@@ -21,18 +23,9 @@ export default function OnboardingPage() {
     location: ''
   })
   const router = useRouter()
+      const { user, loading:autLoading } = useProtectedUser()
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const currentUser = await getCurrentUser()
-      if (!currentUser) {
-        router.push('/login')
-      } else {
-        setUser(currentUser)
-      }
-    }
-    checkUser()
-  }, [router])
+
 
   const conditions = [
     'Diabetes', 'High Blood Pressure', 'Asthma', 'Heart Disease', 
@@ -40,6 +33,8 @@ export default function OnboardingPage() {
   ]
 
   const languages = ['English', 'Hindi', 'Spanish', 'French', 'Other']
+
+
 
   const handleChange = (e) => {
     setFormData({
@@ -102,8 +97,10 @@ export default function OnboardingPage() {
     }
   }
 
-  if (!user) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+
+
+  if (!user || autLoading) {
+    return <Loader/>
   }
 
   return (
@@ -164,7 +161,7 @@ export default function OnboardingPage() {
                     value={formData.gender}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full text-black px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Select gender</option>
                     <option value="Male">Male</option>

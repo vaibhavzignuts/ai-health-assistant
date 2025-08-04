@@ -18,9 +18,10 @@ import {
   History
 } from 'lucide-react'
 import { getCurrentUser } from '../../../lib/auth'
+import Loader from '@/components/ui/Loader'
+import { useProtectedUser } from '@/hooks/useProtectedUser'
 
 export default function MedicineRemindersPage() {
-  const [user, setUser] = useState(null)
   const [reminders, setReminders] = useState([])
   const [todaysSchedule, setTodaysSchedule] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,6 +29,7 @@ export default function MedicineRemindersPage() {
   const [editingReminder, setEditingReminder] = useState(null)
   const [activeTab, setActiveTab] = useState('today') // today, reminders, history
   const router = useRouter()
+   const { user, loading:autLoading } = useProtectedUser()
 
   const [formData, setFormData] = useState({
     medicineName: '',
@@ -48,18 +50,15 @@ export default function MedicineRemindersPage() {
     { value: 'as_needed', label: 'As Needed', times: 1 }
   ]
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const currentUser = await getCurrentUser()
-      if (!currentUser) {
-        router.push('/login')
-      } else {
-        setUser(currentUser)
-        await loadData(currentUser.id)
-      }
+  console.log(user,'user')
+
+useEffect(() => {
+
+    if(user){
+ loadData(user.id)
     }
-    checkUser()
-  }, [router])
+  
+  }, [user])
 
   const loadData = async (userId) => {
     setLoading(true)
@@ -267,6 +266,10 @@ export default function MedicineRemindersPage() {
         </div>
       </div>
     )
+  }
+
+  if(autLoading){
+    return <Loader/>
   }
 
   return (

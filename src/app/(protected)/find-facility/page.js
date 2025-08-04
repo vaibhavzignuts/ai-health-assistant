@@ -17,20 +17,39 @@ import {
   Activity,
   AlertCircle,
   ExternalLink,
-  Filter
+  Filter,
+  Info
 } from 'lucide-react'
-import { getCurrentUser } from '../../../lib/auth'
+
+import { useProtectedUser } from '@/hooks/useProtectedUser'
+import Loader from '@/components/ui/Loader'
 
 export default function FacilityFinderPage() {
-  const [user, setUser] = useState(null)
+
   const [facilities, setFacilities] = useState([])
   const [loading, setLoading] = useState(false)
-  const [searchLocation, setSearchLocation] = useState('')
+  const [selectedCity, setSelectedCity] = useState('')
   const [facilityType, setFacilityType] = useState('all')
   const [radius, setRadius] = useState(10)
   const [userLocation, setUserLocation] = useState(null)
   const [locationLoading, setLocationLoading] = useState(false)
   const router = useRouter()
+  const { user, loading: autLoading } = useProtectedUser()
+
+  // Available cities with hospital data
+  const availableCities = [
+    { value: '', label: 'Select a city' },
+    { value: 'Mumbai', label: 'Mumbai, Maharashtra' },
+    { value: 'Delhi', label: 'Delhi' },
+    { value: 'Bangalore', label: 'Bangalore, Karnataka' },
+    { value: 'Chennai', label: 'Chennai, Tamil Nadu' },
+    { value: 'Kolkata', label: 'Kolkata, West Bengal' },
+    { value: 'Hyderabad', label: 'Hyderabad, Telangana' },
+    { value: 'Pune', label: 'Pune, Maharashtra' },
+    { value: 'Ahmedabad', label: 'Ahmedabad, Gujarat' },
+    { value: 'Surat', label: 'Surat, Gujarat' },
+    { value: 'Jaipur', label: 'Jaipur, Rajasthan' }
+  ]
 
   const facilityTypes = [
     { value: 'all', label: 'All Facilities', icon: Building },
@@ -41,17 +60,9 @@ export default function FacilityFinderPage() {
     { value: 'emergency', label: 'Emergency', icon: AlertCircle }
   ]
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const currentUser = await getCurrentUser()
-      if (!currentUser) {
-        router.push('/login')
-      } else {
-        setUser(currentUser)
-      }
-    }
-    checkUser()
-  }, [router])
+  if(autLoading){
+    return<Loader/>
+  }
 
   const getCurrentLocation = () => {
     setLocationLoading(true)
@@ -63,13 +74,15 @@ export default function FacilityFinderPage() {
             lng: position.coords.longitude
           }
           setUserLocation(location)
-          setSearchLocation(`${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`)
           setLocationLoading(false)
-          searchFacilities('', facilityType, radius, location.lat, location.lng)
+          
+          // Try to match user location to nearest available city
+          // For now, we'll just show a message that user should select from available cities
+          alert('Please select your city from the dropdown list of available cities.')
         },
         (error) => {
           console.error('Error getting location:', error)
-          alert('Could not get your location. Please enter it manually.')
+          alert('Could not get your location. Please select your city from the dropdown.')
           setLocationLoading(false)
         }
       )
@@ -79,23 +92,17 @@ export default function FacilityFinderPage() {
     }
   }
 
-  const searchFacilities = async (location = searchLocation, type = facilityType, searchRadius = radius, lat = null, lng = null) => {
-    if (!user || (!location.trim() && !lat && !lng)) return
+  const searchFacilities = async (city = selectedCity, type = facilityType, searchRadius = radius) => {
+    if (!user || !city.trim()) return
 
     setLoading(true)
     try {
       const params = new URLSearchParams({
         userId: user.id,
+        city: city.trim(),
         type: type,
         radius: searchRadius.toString()
       })
-
-      if (lat && lng) {
-        params.append('lat', lat.toString())
-        params.append('lng', lng.toString())
-      } else if (location.trim()) {
-        params.append('location', location.trim())
-      }
 
       const response = await fetch(`/api/find-facility?${params}`)
       const data = await response.json()
@@ -114,6 +121,10 @@ export default function FacilityFinderPage() {
   }
 
   const handleSearch = () => {
+    if (!selectedCity) {
+      alert('Please select a city first.')
+      return
+    }
     searchFacilities()
   }
 
@@ -180,6 +191,20 @@ export default function FacilityFinderPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Beta Notice */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start space-x-3">
+            <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-medium text-blue-900">Currently Available Cities</h3>
+              <p className="text-sm text-blue-800 mt-1">
+                We currently have healthcare facility data for major Indian cities. More cities and facilities will be added in the next version. 
+                Please select from the available cities below.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Search Section */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Search for Healthcare Facilities</h2>
@@ -187,29 +212,37 @@ export default function FacilityFinderPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location
+                Select City *
               </label>
               <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={searchLocation}
-                  onChange={(e) => setSearchLocation(e.target.value)}
-                  placeholder="Enter city, area, or address"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                />
+                <select
+                  value={selectedCity}
+                  onChange={(e) => setSelectedCity(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {availableCities.map(city => (
+                    <option key={city.value} value={city.value}>
+                      {city.label}
+                    </option>
+                  ))}
+                </select>
                 <button
                   onClick={getCurrentLocation}
                   disabled={locationLoading}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 flex items-center space-x-2"
+                  className="px-4 py-2 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 flex items-center space-x-2"
+                  title="Use current location (limited to available cities)"
                 >
                   {locationLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Navigation className="h-4 w-4" />
                   )}
-                  <span className="hidden sm:inline">Use Current</span>
+                  <span className="hidden sm:inline">Auto-detect</span>
                 </button>
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Select from available cities with healthcare data
+              </p>
             </div>
 
             <div>
@@ -231,25 +264,25 @@ export default function FacilityFinderPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Radius (km)
+                Search Area
               </label>
               <select
                 value={radius}
                 onChange={(e) => setRadius(parseInt(e.target.value))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value={5}>5 km</option>
-                <option value={10}>10 km</option>
-                <option value={15}>15 km</option>
-                <option value={25}>25 km</option>
-                <option value={50}>50 km</option>
+                <option value={5}>City Center (5 km)</option>
+                <option value={10}>Nearby Areas (10 km)</option>
+                <option value={15}>Extended Area (15 km)</option>
+                <option value={25}>Greater Area (25 km)</option>
+                <option value={50}>Metropolitan (50 km)</option>
               </select>
             </div>
           </div>
 
           <button
             onClick={handleSearch}
-            disabled={loading || (!searchLocation.trim() && !userLocation)}
+            disabled={loading || !selectedCity}
             className="w-full md:w-auto bg-blue-600 text-white py-2 px-6 rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
           >
             {loading ? (
@@ -271,7 +304,7 @@ export default function FacilityFinderPage() {
           <div className="bg-white rounded-lg shadow-sm border">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">
-                Found {facilities.length} facilities
+                Found {facilities.length} facilities in {selectedCity}
               </h3>
             </div>
 
@@ -402,22 +435,28 @@ export default function FacilityFinderPage() {
         )}
 
         {/* No Results */}
-        {!loading && facilities.length === 0 && searchLocation && (
+        {!loading && facilities.length === 0 && selectedCity && (
           <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
             <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No facilities found</h3>
             <p className="text-gray-600 mb-4">
-              We could not find any healthcare facilities matching your criteria in the specified area.
+              We could not find any healthcare facilities matching your criteria in {selectedCity}.
             </p>
-            <button
-              onClick={() => {
-                setRadius(25)
-                handleSearch()
-              }}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700"
-            >
-              Search in wider area (25km)
-            </button>
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  setFacilityType('all')
+                  setRadius(50)
+                  setTimeout(() => handleSearch(), 100)
+                }}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 mr-2"
+              >
+                Search All Types (50km)
+              </button>
+              <p className="text-sm text-gray-500">
+                Try selecting a different city or facility type, or check back soon as we're adding more facilities regularly.
+              </p>
+            </div>
           </div>
         )}
 

@@ -1,11 +1,13 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Heart, Eye, EyeOff } from 'lucide-react'
-import { signUp } from '../../../lib/auth'
+import { getCurrentUser, signUp } from '../../../lib/auth'
 import Button from '../../../components/ui/Button'
 import Input from '../../../components/ui/Input'
+import Loader from '@/components/ui/Loader'
+import { supabase } from '@/lib/supabase'
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -18,6 +20,52 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const [authLoading, setAuthLoading] = useState(true)
+    const [shouldShowLogin, setShouldShowLogin] = useState(false)
+
+  useEffect(() => {
+    const checkUserAndProfile = async () => {
+      try {
+        setAuthLoading(true)
+        const currentUser = await getCurrentUser()
+     
+        if (!currentUser) {
+          setShouldShowLogin(true)
+          setAuthLoading(false)
+          return
+        }
+
+        // User exists, check profile
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single()
+
+        console.log(profileData, 'profileData')
+
+        if (!profileData) {
+          // User exists but hasn't completed onboarding
+          router.replace('/onboarding')
+        } else {
+          // User is fully authenticated and has profile
+          router.replace('/dashboard')
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error)
+        // On error, show login page
+        setShouldShowLogin(true)
+        setAuthLoading(false)
+      }
+    }
+
+    checkUserAndProfile()
+  }, [router])
+
+
+       if (authLoading || !shouldShowLogin) {
+         return <Loader />
+       }
 
   const handleChange = (e) => {
     setFormData({

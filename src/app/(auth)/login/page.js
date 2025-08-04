@@ -7,62 +7,104 @@ import { signIn } from '../../../lib/auth'
 import Button from '../../../components/ui/Button'
 import Input from '../../../components/ui/Input'
 import { getCurrentUser, signOut } from '../../../lib/auth'
+import { useProtectedUser } from '@/hooks/useProtectedUser'
+import Loader from '@/components/ui/Loader'
+import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [authLoading, setAuthLoading] = useState(true)
+  const [user, setUser] = useState(null)
   const [error, setError] = useState('')
+  const [shouldShowLogin, setShouldShowLogin] = useState(false)
   const router = useRouter()
 
-
-    useEffect(() => {
-      const checkUserAndProfile = async () => {
+  useEffect(() => {
+    const checkUserAndProfile = async () => {
+      try {
+        setAuthLoading(true)
         const currentUser = await getCurrentUser()
-        console.log(currentUser,'currentUser')
-        if (currentUser) {
-          router.push('/dashboard')
+        console.log(currentUser, 'currentUser')
+        
+        // No user: show login page
+        if (!currentUser) {
+          setShouldShowLogin(true)
+          setAuthLoading(false)
           return
         }
-        
-        setUser(currentUser)
-        
-        // Fetch user profile
-        const { data: profileData } = await supabase
+
+        // User exists, check profile
+        const { data: profileData, error } = await supabase
           .from('user_profiles')
           .select('*')
           .eq('id', currentUser.id)
           .single()
-        
+
+        console.log(profileData, 'profileData')
+
         if (!profileData) {
-          // User hasn't completed onboarding
-          router.push('/onboarding')
-          return
+          // User exists but hasn't completed onboarding
+          router.replace('/onboarding')
+        } else {
+          // User is fully authenticated and has profile
+          router.replace('/dashboard')
         }
-        
-        setProfile(profileData)
-        setLoading(false)
+      } catch (error) {
+        console.error('Error checking auth:', error)
+        // On error, show login page
+        setShouldShowLogin(true)
+        setAuthLoading(false)
       }
-      
-      checkUserAndProfile()
-    }, [router])
+    }
+
+    checkUserAndProfile()
+  }, [router])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { data, error: authError } = await signIn(email, password)
-    
-    if (authError) {
-      setError(authError.message)
+    try {
+      const { data, error: authError } = await signIn(email, password)
+      
+      if (authError) {
+        setError(authError.message)
+      } else {
+        // After successful login, check profile again
+        const currentUser = await getCurrentUser()
+        if (currentUser) {
+          const { data: profileData } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single()
+
+          if (!profileData) {
+            router.replace('/onboarding')
+          } else {
+            router.replace('/dashboard')
+          }
+        }
+      }
+    } catch (error) {
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
       setLoading(false)
-    } else {
-      console.log('jkjkjk')
-      // Check if user has completed onboarding
-      router.push('/dashboard')
     }
+  }
+
+  // Show loader while checking authentication
+  if (authLoading) {
+    return <Loader />
+  }
+
+  // Only show login form if we've determined user should see it
+  if (!shouldShowLogin) {
+    return <Loader />
   }
 
   return (
