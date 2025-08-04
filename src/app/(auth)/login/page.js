@@ -98,14 +98,11 @@ export default function LoginPage() {
   }
 
   // Show loader while checking authentication
-  if (authLoading) {
+  if (authLoading || !shouldShowLogin) {
     return <Loader />
   }
 
-  // Only show login form if we've determined user should see it
-  if (!shouldShowLogin) {
-    return <Loader />
-  }
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">

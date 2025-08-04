@@ -40,19 +40,19 @@ export async function POST(request) {
     }
 
     // Rest of your code remains the same...
-    const prompt = `As a healthcare AI assistant, provide personalized health tips and recommendations for a patient with the following profile:
+// Update the prompt to focus on the selected category
+const prompt = `As a healthcare AI assistant, provide personalized health tips ONLY for the ${category} category for a patient with the following profile:
 
 Patient Context:
 - Age: ${profile.age || 'Not specified'}
 - Gender: ${profile.gender || 'Not specified'}
 - Existing Conditions: ${profile.existing_conditions?.join(', ') || 'None specified'}
 - Location: ${profile.location || 'Not specified'}
-- Language: ${profile.preferred_language || 'English'}
 
-${category ? `Focus Category: ${category}` : ''}
+Please provide health tips in JSON format EXCLUSIVELY for the ${category} category with the following structure:
 
-Please provide comprehensive health tips in JSON format with the following structure:
-{
+${
+  category === 'general' ? `{
   "generalTips": [
     {
       "title": "tip title",
@@ -61,21 +61,13 @@ Please provide comprehensive health tips in JSON format with the following struc
       "priority": "high|medium|low"
     }
   ],
-  "conditionSpecificTips": [
-    {
-      "condition": "condition name",
-      "tips": [
-        {
-          "title": "tip title",
-          "description": "detailed tip description",
-          "dosDonts": {
-            "dos": ["do this", "do that"],
-            "donts": ["avoid this", "avoid that"]
-          }
-        }
-      ]
-    }
-  ],
+  "warningSignsToWatch": ["warning sign 1", "warning sign 2"],
+  "disclaimer": "medical disclaimer"
+}` : ''
+}
+
+${
+  category === 'diet' ? `{
   "dietaryRecommendations": {
     "recommended": ["food 1", "food 2"],
     "avoid": ["food 1", "food 2"],
@@ -86,12 +78,48 @@ Please provide comprehensive health tips in JSON format with the following struc
       "snacks": "suggestion"
     }
   },
+  "disclaimer": "medical disclaimer"
+}` : ''
+}
+
+${
+  category === 'exercise' ? `{
   "exerciseGuidelines": {
     "recommended": ["exercise 1", "exercise 2"],
     "avoid": ["exercise 1", "exercise 2"],
     "duration": "recommended duration",
     "frequency": "recommended frequency"
   },
+  "disclaimer": "medical disclaimer"
+}` : ''
+}
+
+${
+  category === 'mental' ? `{
+  "lifestyleModifications": [
+    {
+      "category": "stress|mindfulness|habits",
+      "recommendation": "specific advice",
+      "implementation": "how to implement"
+    }
+  ],
+  "disclaimer": "medical disclaimer"
+}` : ''
+}
+
+${
+  category === 'preventive' ? `{
+  "conditionSpecificTips": [
+    {
+      "condition": "condition name",
+      "tips": [
+        {
+          "title": "preventive measure",
+          "description": "detailed description"
+        }
+      ]
+    }
+  ],
   "monitoringAdvice": [
     {
       "parameter": "what to monitor",
@@ -100,44 +128,19 @@ Please provide comprehensive health tips in JSON format with the following struc
       "whenToAlert": "when to seek help"
     }
   ],
-  "lifestyleModifications": [
-    {
-      "category": "sleep|stress|habits",
-      "recommendation": "specific advice",
-      "implementation": "how to implement"
-    }
-  ],
-  "warningSignsToWatch": [
-    "warning sign 1",
-    "warning sign 2"
-  ],
-  "medicationReminders": [
-    {
-      "general": "general medication advice",
-      "timing": "timing recommendations",
-      "interactions": "things to avoid"
-    }
-  ],
-  "emergencyGuidelines": {
-    "whenToCall": "when to call emergency services",
-    "emergencyContact": "reminder about emergency contact",
-    "immediateActions": ["action 1", "action 2"]
-  },
-  "disclaimer": "This is AI-generated information for educational purposes only and should not replace professional medical advice. Always consult with healthcare providers for personalized medical guidance."
+  "disclaimer": "medical disclaimer"
+}` : ''
 }
 
 Focus on:
-1. Specific advice for each existing condition
-2. Practical, actionable tips
-3. Cultural and regional considerations for ${profile.location}
-4. Age and gender-appropriate recommendations
-5. Preventive care measures
-6. Early warning signs to watch for
-7. Integration of multiple conditions if present
+1. Practical, actionable tips specifically for ${category}
+2. Cultural and regional considerations for ${profile.location}
+3. Age and gender-appropriate recommendations
+4. Integration of existing conditions if relevant to ${category}
 
-Be comprehensive but practical, focusing on evidence-based recommendations that are accessible and implementable in daily life.`
+Be specific and practical.`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
     const result = await model.generateContent(prompt)
     const response = await result.response
     const text = response.text()

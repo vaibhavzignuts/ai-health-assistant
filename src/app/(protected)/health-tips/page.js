@@ -51,7 +51,7 @@ export default function HealthTips() {
   }
 
 
-  const generateHealthTips = async (userId, category = 'general') => {
+  const generateHealthTips = async (userId, category =selectedCategory) => {
     setGenerating(true)
     try {
       const response = await fetch('/api/health-tips', {
@@ -76,11 +76,18 @@ export default function HealthTips() {
     }
   }
 
+
+  useEffect(() => {
+  if (profile) {
+    generateHealthTips(profile.id, selectedCategory);
+  }
+}, [selectedCategory, profile]);
+
   const handleCategoryChange = (category) => {
     setSelectedCategory(category)
-    if (profile) {
-      generateHealthTips(profile.id, category)
-    }
+    // if (profile) {
+    //   generateHealthTips(profile.id, category)
+    // }
   }
 
   const toggleSection = (section) => {
@@ -242,7 +249,7 @@ export default function HealthTips() {
             ) : healthTips ? (
               <div className="space-y-6">
                 {/* General Tips */}
-                {healthTips.generalTips && healthTips.generalTips.length > 0 && (
+                { selectedCategory === 'general' &&healthTips.generalTips && healthTips.generalTips.length > 0 && (
                   <div className="bg-white rounded-lg shadow-sm">
                     <div
                       className="p-6 border-b border-gray-200 cursor-pointer"
@@ -347,7 +354,7 @@ export default function HealthTips() {
                 )}
 
                 {/* Dietary Recommendations */}
-                {healthTips.dietaryRecommendations && (
+                { selectedCategory === 'diet'&&healthTips.dietaryRecommendations && (
                   <div className="bg-white rounded-lg shadow-sm">
                     <div
                       className="p-6 border-b border-gray-200 cursor-pointer"
@@ -406,7 +413,7 @@ export default function HealthTips() {
                 )}
 
                 {/* Exercise Guidelines */}
-                {healthTips.exerciseGuidelines && (
+                {selectedCategory === 'exercise'&&healthTips.exerciseGuidelines && (
                   <div className="bg-white rounded-lg shadow-sm">
                     <div
                       className="p-6 border-b border-gray-200 cursor-pointer"
