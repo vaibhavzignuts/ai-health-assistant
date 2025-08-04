@@ -307,7 +307,7 @@ useEffect(() => {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            Today's Schedule
+         Today&apos;s Schedule
           </button>
           <button
             onClick={() => setActiveTab('reminders')}
@@ -325,7 +325,7 @@ useEffect(() => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold text-gray-900">
-                Today's Medicine Schedule
+                Today&apos;s Medicine Schedule
               </h2>
               <span className="text-sm text-gray-500">
                 {new Date().toLocaleDateString('en-US', { 
@@ -692,7 +692,7 @@ useEffect(() => {
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-blue-600 mt-1">•</span>
-              <span>Don't skip doses - mark as 'skipped' only when necessary</span>
+              <span>Don&apos;t skip doses - mark as skipped only when necessary</span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-blue-600 mt-1">•</span>

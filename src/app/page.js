@@ -191,7 +191,7 @@ export default function LandingPage() {
               </span>
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 ">
-              Comprehensive healthcare tools designed specifically for your community's needs
+              Comprehensive healthcare tools designed specifically for your community&apos;s needs
             </p>
           </div>
 
