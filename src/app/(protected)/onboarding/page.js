@@ -284,7 +284,7 @@ export default function OnboardingPage() {
         <div className="text-center mb-8">
           <Heart className="h-12 w-12 text-blue-600 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Let's set up your health profile
+            Let&apos;s set up your health profile
           </h1>
           <p className="text-gray-600">
             This helps us provide personalized health recommendations
