@@ -29,30 +29,6 @@ This is a full-stack healthcare assistant web application built using **Next.js*
 - 📱 Responsive UI (mobile-friendly)
 - 🌐 Deployed & publicly accessible
 
----
-
-## 📁 Project Structure
-
-/app
-/dashboard # Private dashboard home
-/login # Login page
-/register # Signup page
-/onboarding # Profile setup page
-/symptom-checker # AI symptom checker
-/find-facility # Facility finder
-/reminders # Medicine reminder system
-/health-tips # Personalized health advice
-/emergency # Emergency contact section
-/profile # Edit profile/settings
-/public
-/styles
-/utils
-
-yaml
-Copy
-Edit
-
----
 
 ## 🛠️ Local Development Setup
 
