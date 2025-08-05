@@ -50,7 +50,7 @@ export default function MedicineRemindersPage() {
     { value: 'as_needed', label: 'As Needed', times: 1 }
   ]
 
-  console.log(user,'user')
+
 
 useEffect(() => {
 
@@ -336,105 +336,126 @@ useEffect(() => {
                 })}
               </span>
             </div>
+{todaysSchedule.length > 0 ? (
+  <div className="bg-white rounded-lg shadow-sm border divide-y divide-gray-200">
+    {todaysSchedule.map((item, index) => {
+      const time = new Date(item.scheduledTime).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+      const isPast = new Date(item.scheduledTime) < new Date()
 
-            {todaysSchedule.length > 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border divide-y divide-gray-200">
-                {todaysSchedule.map((item, index) => {
-                  const time = new Date(item.scheduledTime).toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
-                  const isPast = new Date(item.scheduledTime) < new Date()
-
-                  return (
-                    <div key={index} className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex-shrink-0">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                              item.status === 'taken' ? 'bg-green-100' :
-                              item.status === 'missed' ? 'bg-red-100' :
-                              item.status === 'skipped' ? 'bg-yellow-100' :
-                              isPast ? 'bg-red-100' : 'bg-blue-100'
-                            }`}>
-                              <Pill className={`h-6 w-6 ${
-                                item.status === 'taken' ? 'text-green-600' :
-                                item.status === 'missed' ? 'text-red-600' :
-                                item.status === 'skipped' ? 'text-yellow-600' :
-                                isPast ? 'text-red-600' : 'text-blue-600'
-                              }`} />
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {item.reminder.medicine_name}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              {item.reminder.dosage}
-                            </p>
-                            <div className="flex items-center space-x-4 mt-1">
-                              <span className="text-sm text-gray-500 flex items-center">
-                                <Clock className="h-4 w-4 mr-1" />
-                                {time}
-                              </span>
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
-                                {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {item.status === 'pending' && (
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => updateMedicineStatus(item, 'taken')}
-                              className="bg-green-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-green-700 flex items-center space-x-1"
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                              <span>Taken</span>
-                            </button>
-                            <button
-                              onClick={() => updateMedicineStatus(item, 'skipped')}
-                              className="bg-yellow-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-yellow-700 flex items-center space-x-1"
-                            >
-                              <XCircle className="h-4 w-4" />
-                              <span>Skip</span>
-                            </button>
-                          </div>
-                        )}
-
-                        {item.status === 'taken' && item.takenTime && (
-                          <div className="text-sm text-gray-500">
-                            Taken at {new Date(item.takenTime).toLocaleTimeString('en-US', {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg shadow-sm border p-8 text-center">
-                <Pill className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No medicines scheduled for today</h3>
-                <p className="text-gray-600 mb-4">
-                  Add your first medicine reminder to get started
-                </p>
-                <button
-                  onClick={() => {
-                    setActiveTab('reminders')
-                    setShowAddForm(true)
-                  }}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700"
+      return (
+        <div key={index} className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Left Part */}
+            <div className="flex items-start sm:items-center space-x-4 w-full">
+              {/* Icon */}
+              <div className="flex-shrink-0">
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    item.status === 'taken'
+                      ? 'bg-green-100'
+                      : item.status === 'missed'
+                      ? 'bg-red-100'
+                      : item.status === 'skipped'
+                      ? 'bg-yellow-100'
+                      : isPast
+                      ? 'bg-red-100'
+                      : 'bg-blue-100'
+                  }`}
                 >
-                  Add Medicine Reminder
-                </button>
+                  <Pill
+                    className={`h-6 w-6 ${
+                      item.status === 'taken'
+                        ? 'text-green-600'
+                        : item.status === 'missed'
+                        ? 'text-red-600'
+                        : item.status === 'skipped'
+                        ? 'text-yellow-600'
+                        : isPast
+                        ? 'text-red-600'
+                        : 'text-blue-600'
+                    }`}
+                  />
+                </div>
               </div>
-            )}
+
+              {/* Medicine Info */}
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {item.reminder.medicine_name}
+                </h3>
+                <p className="text-sm text-gray-600">{item.reminder.dosage}</p>
+                <div className="flex flex-wrap items-center gap-3 mt-1">
+                  <span className="text-sm text-gray-500 flex items-center">
+                    <Clock className="h-4 w-4 mr-1" />
+                    {time}
+                  </span>
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                      item.status
+                    )}`}
+                  >
+                    {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Part */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              {item.status === 'pending' && (
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={() => updateMedicineStatus(item, 'taken')}
+                    className="bg-green-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-green-700 flex items-center justify-center space-x-1"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Taken</span>
+                  </button>
+                  <button
+                    onClick={() => updateMedicineStatus(item, 'skipped')}
+                    className="bg-yellow-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-yellow-700 flex items-center justify-center space-x-1"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    <span>Skip</span>
+                  </button>
+                </div>
+              )}
+
+              {item.status === 'taken' && item.takenTime && (
+                <div className="text-sm text-gray-500">
+                  Taken at{' '}
+                  {new Date(item.takenTime).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    })}
+  </div>
+) : (
+  <div className="bg-white rounded-lg shadow-sm border p-6 sm:p-8 text-center">
+    <Pill className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+    <h3 className="text-lg font-semibold text-gray-900 mb-2">No medicines scheduled for today</h3>
+    <p className="text-gray-600 mb-4">Add your first medicine reminder to get started</p>
+    <button
+      onClick={() => {
+        setActiveTab('reminders')
+        setShowAddForm(true)
+      }}
+      className="bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700"
+    >
+      Add Medicine Reminder
+    </button>
+  </div>
+)}
+
           </div>
         )}
 
