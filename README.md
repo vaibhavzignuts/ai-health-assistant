@@ -33,3 +33,43 @@ This is a full-stack healthcare assistant web application built using **Next.js*
 
 ## 📁 Project Structure
 
+/app
+/dashboard # Private dashboard home
+/login # Login page
+/register # Signup page
+/onboarding # Profile setup page
+/symptom-checker # AI symptom checker
+/find-facility # Facility finder
+/reminders # Medicine reminder system
+/health-tips # Personalized health advice
+/emergency # Emergency contact section
+/profile # Edit profile/settings
+/public
+/styles
+/utils
+
+yaml
+Copy
+Edit
+
+---
+
+## 🛠️ Local Development Setup
+
+### 📋 Requirements
+
+- Node.js **v20+**
+- Supabase project with required tables & auth
+- API key from Google Gemini (for symptom checker)
+
+### 📦 Installation
+
+```bash
+# Clone the repo
+git clone https://github.com/your-username/community-health-assistant.git
+
+# Navigate to the project directory
+cd community-health-assistant
+
+# Install dependencies
+npm install
