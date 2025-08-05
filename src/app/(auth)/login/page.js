@@ -27,7 +27,7 @@ export default function LoginPage() {
       try {
         setAuthLoading(true)
         const currentUser = await getCurrentUser()
-        console.log(currentUser, 'currentUser')
+      
         
         // No user: show login page
         if (!currentUser) {
@@ -43,7 +43,7 @@ export default function LoginPage() {
           .eq('id', currentUser.id)
           .single()
 
-        console.log(profileData, 'profileData')
+
 
         if (!profileData) {
           // User exists but hasn't completed onboarding

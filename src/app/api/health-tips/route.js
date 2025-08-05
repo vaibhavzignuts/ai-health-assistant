@@ -13,7 +13,7 @@ export async function POST(request) {
   try {
     const { userId, category } = await request.json()
 
-    console.log(userId, 'userId')
+
 
     if (!userId) {
       return NextResponse.json(
@@ -29,8 +29,7 @@ export async function POST(request) {
       .eq('id', userId)
       .single()
 
-    console.log(profileError, 'profileError')
-    console.log(profile, 'profile data')
+
 
     if (profileError || !profile) {
       return NextResponse.json(

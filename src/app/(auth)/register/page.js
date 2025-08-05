@@ -42,7 +42,6 @@ export default function RegisterPage() {
           .eq('id', currentUser.id)
           .single()
 
-        console.log(profileData, 'profileData')
 
         if (!profileData) {
           // User exists but hasn't completed onboarding

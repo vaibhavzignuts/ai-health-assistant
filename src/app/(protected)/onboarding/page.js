@@ -138,6 +138,8 @@ export default function OnboardingPage() {
     }))
   }
 
+
+
   const handleBlur = (e) => {
     const { name, value } = e.target
     
@@ -523,14 +525,13 @@ export default function OnboardingPage() {
             {step < 3 ? (
               <Button
                 onClick={handleNext}
-                disabled={!isStepValid(step)}
               >
                 Next
               </Button>
             ) : (
               <Button
                 onClick={handleSubmit}
-                disabled={loading || !isStepValid(3)}
+                disabled={loading }
               >
                 {loading ? 'Setting up...' : 'Complete Setup'}
               </Button>

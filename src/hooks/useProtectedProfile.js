@@ -14,7 +14,7 @@ export function useProtectedProfile() {
   useEffect(() => {
     const checkUserAndProfile = async () => {
       const currentUser = await getCurrentUser()
-      console.log(currentUser,'currentUser')
+
       if (!currentUser) {
         router.push('/login')
         return
