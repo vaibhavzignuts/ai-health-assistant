@@ -310,139 +310,137 @@ export default function FacilityFinderPage() {
         </div>
 
         {/* Results */}
-        {facilities.length > 0 && (
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Found {facilities.length} facilities in {selectedCity}
-              </h3>
-            </div>
+{facilities.length > 0 && (
+  <div className="bg-white rounded-lg shadow-sm border">
+    <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+      <h3 className="text-lg font-semibold text-gray-900">
+        Found {facilities.length} facilities in {selectedCity}
+      </h3>
+    </div>
 
-            <div className="divide-y divide-gray-200">
-              {facilities.map((facility) => {
-                const IconComponent = getFacilityIcon(facility.type)
-                return (
-                  <div key={facility.id} className="p-6 hover:bg-gray-50">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0">
-                          <div className="bg-blue-100 p-3 rounded-lg">
-                            <IconComponent className="h-6 w-6 text-blue-600" />
-                          </div>
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <h4 className="text-lg font-semibold text-gray-900">
-                              {facility.name}
-                            </h4>
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getFacilityTypeColor(facility.type)}`}>
-                              {facility.type.replace('_', ' ').toUpperCase()}
-                            </span>
-                            {facility.emergency_services && (
-                              <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                                EMERGENCY
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="space-y-2 text-sm text-gray-600">
-                            <div className="flex items-center space-x-2">
-                              <MapPin className="h-4 w-4" />
-                              <span>{facility.address}, {facility.city}</span>
-                              {facility.distance && (
-                                <span className="text-blue-600 font-medium">
-                                  ({facility.distance} km away)
-                                </span>
-                              )}
-                            </div>
-
-                            {facility.phone && (
-                              <div className="flex items-center space-x-2">
-                                <Phone className="h-4 w-4" />
-                                <a
-                                  href={`tel:${facility.phone}`}
-                                  className="text-blue-600 hover:text-blue-800"
-                                >
-                                  {facility.phone}
-                                </a>
-                              </div>
-                            )}
-
-                            {facility.services && facility.services.length > 0 && (
-                              <div className="flex items-start space-x-2">
-                                <Activity className="h-4 w-4 mt-0.5" />
-                                <div className="flex flex-wrap gap-1">
-                                  {facility.services.slice(0, 3).map((service, index) => (
-                                    <span
-                                      key={index}
-                                      className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded"
-                                    >
-                                      {service}
-                                    </span>
-                                  ))}
-                                  {facility.services.length > 3 && (
-                                    <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
-                                      +{facility.services.length - 3} more
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-
-                            {facility.rating > 0 && (
-                              <div className="flex items-center space-x-2">
-                                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                                <span>{facility.rating}/5</span>
-                                {facility.total_reviews > 0 && (
-                                  <span className="text-gray-500">
-                                    ({facility.total_reviews} reviews)
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col space-y-2">
-                        <button
-                          onClick={() => openDirections(facility)}
-                          className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center space-x-2"
-                        >
-                          <Navigation className="h-4 w-4" />
-                          <span>Directions</span>
-                        </button>
-
-                        {facility.phone && (
-                          <a
-                            href={`tel:${facility.phone}`}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center space-x-2 text-center justify-center"
-                          >
-                            <Phone className="h-4 w-4" />
-                            <span>Call</span>
-                          </a>
-                        )}
-
-                        {facility.website && (
-                          <a
-                            href={facility.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center space-x-2 text-center justify-center"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            <span>Website</span>
-                          </a>
-                        )}
-                      </div>
-                    </div>
+    <div className="divide-y divide-gray-200">
+      {facilities.map((facility) => {
+        const IconComponent = getFacilityIcon(facility.type)
+        return (
+          <div key={facility.id} className="p-4 sm:p-6 hover:bg-gray-50">
+            <div className="flex flex-col lg:flex-row justify-between gap-4">
+              {/* Left: Facility Info */}
+              <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                <div className="flex-shrink-0">
+                  <div className="bg-blue-100 p-3 rounded-lg w-fit">
+                    <IconComponent className="h-6 w-6 text-blue-600" />
                   </div>
-                )
-              })}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h4 className="text-lg font-semibold text-gray-900">{facility.name}</h4>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getFacilityTypeColor(facility.type)}`}>
+                      {facility.type.replace('_', ' ').toUpperCase()}
+                    </span>
+                    {facility.emergency_services && (
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+                        EMERGENCY
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{facility.address}, {facility.city}</span>
+                      {facility.distance && (
+                        <span className="text-blue-600 font-medium">
+                          ({facility.distance} km away)
+                        </span>
+                      )}
+                    </div>
+
+                    {facility.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        <a
+                          href={`tel:${facility.phone}`}
+                          className="text-blue-600 hover:text-blue-800 break-all"
+                        >
+                          {facility.phone}
+                        </a>
+                      </div>
+                    )}
+
+                    {facility.services && facility.services.length > 0 && (
+                      <div className="flex items-start gap-2 flex-wrap">
+                        <Activity className="h-4 w-4 mt-0.5" />
+                        <div className="flex flex-wrap gap-1">
+                          {facility.services.slice(0, 3).map((service, index) => (
+                            <span key={index} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                              {service}
+                            </span>
+                          ))}
+                          {facility.services.length > 3 && (
+                            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                              +{facility.services.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {facility.rating > 0 && (
+                      <div className="flex items-center space-x-2">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span>{facility.rating}/5</span>
+                        {facility.total_reviews > 0 && (
+                          <span className="text-gray-500">
+                            ({facility.total_reviews} reviews)
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Actions */}
+              <div className="flex flex-col sm:flex-row lg:flex-col gap-2">
+                <button
+                  onClick={() => openDirections(facility)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center justify-center space-x-2"
+                >
+                  <Navigation className="h-4 w-4" />
+                  <span>Directions</span>
+                </button>
+
+                {facility.phone && (
+                  <a
+                    href={`tel:${facility.phone}`}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center space-x-2"
+                  >
+                    <Phone className="h-4 w-4" />
+                    <span>Call</span>
+                  </a>
+                )}
+
+                {facility.website && (
+                  <a
+                    href={facility.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 flex items-center justify-center space-x-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Website</span>
+                  </a>
+                )}
+              </div>
             </div>
           </div>
-        )}
+        )
+      })}
+    </div>
+  </div>
+)}
+
 
         {/* No Results */}
         {!loading && facilities.length === 0 && selectedCity && (
