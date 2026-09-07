@@ -76,10 +76,13 @@ export default function FacilityFinderPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id,
-          facilityId: bookingFacility.id,
-          doctorName: 'General Consultation',
+          providerName: 'General Consultation',
+          facilityName: bookingFacility.name,
+          appointmentType: 'In-person',
           appointmentDate: datetime,
-          reason: bookingData.reason || 'General checkup'
+          location: bookingFacility.address,
+          isVirtual: false,
+          notes: bookingData.reason || 'General checkup'
         })
       });
       const data = await res.json();

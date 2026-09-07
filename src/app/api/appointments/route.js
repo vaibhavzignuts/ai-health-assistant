@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
 export async function GET(request) {
@@ -67,7 +67,7 @@ export async function POST(request) {
     return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error('Error creating appointment:', error);
-    return NextResponse.json({ error: 'Failed to create appointment' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to create appointment', details: error }, { status: 500 });
   }
 }
 
