@@ -21,11 +21,11 @@ export const updateUserProfile = async (userId, profileData) => {
   try {
     const { data, error } = await supabase
       .from('user_profiles')
-      .update({
+      .upsert({
+        id: userId,
         ...profileData,
         updated_at: new Date().toISOString()
-      })
-      .eq('id', userId)
+      }, { onConflict: 'id' })
       .select()
       .single();
     

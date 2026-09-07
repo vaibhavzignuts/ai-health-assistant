@@ -1,35 +1,41 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import {
-  Stethoscope,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  ArrowLeft,
-  Heart,
-  Loader2,
-
-  AlertCircle,
-  Info,
-} from "lucide-react";
-
-import Loader from "@/components/ui/Loader";
-import { useProtectedUser } from "@/hooks/useProtectedUser";
+'use client';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Stethoscope, AlertTriangle, Clock, ArrowLeft, Loader2, Save, History, FileText } from 'lucide-react';
+import { useProtectedUser } from '@/hooks/useProtectedUser';
+import Loader from '@/components/ui/Loader';
+import Card from '@/components/ui/Card';
+import Badge from '@/components/ui/Badge';
+import Alert from '@/components/ui/Alert';
+import EmptyState from '@/components/ui/EmptyState';
 
 export default function SymptomCheckerPage() {
-
   const [symptoms, setSymptoms] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
-   const { user, loading:autLoading } = useProtectedUser()
+  const [history, setHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState('check');
+  const [isSaving, setIsSaving] = useState(false);
+  const { user, loading: authLoading } = useProtectedUser();
   const router = useRouter();
 
-if(autLoading){
-  return <Loader/>
-}
+  useEffect(() => {
+    if (user && activeTab === 'history') {
+      loadHistory();
+    }
+  }, [user, activeTab]);
 
-
+  const loadHistory = async () => {
+    try {
+      const res = await fetch(`/api/symptom-history?userId=${user.id}`);
+      const data = await res.json();
+      if (data.success) {
+        setHistory(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to load history:', error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,20 +47,13 @@ if(autLoading){
     try {
       const response = await fetch("/api/symptom-checker", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          symptoms: symptoms.trim(),
-          userId: user.id,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ symptoms: symptoms.trim(), userId: user.id }),
       });
 
       const data = await response.json();
-
       if (data.success) {
         setResult(data.data);
-       
       } else {
         alert(data.error || "Failed to analyze symptoms");
       }
@@ -66,309 +65,218 @@ if(autLoading){
     }
   };
 
-  //   const handleSubmit = async (e) => {
-  //     e.preventDefault()
-  //     await analyzeSymptoms(symptoms, user.id)
-  //   }
-
-  const getSeverityColor = (severity) => {
-    switch (severity) {
-      case "low":
-        return "text-green-600 bg-green-50 border-green-200";
-      case "medium":
-        return "text-yellow-600 bg-yellow-50 border-yellow-200";
-      case "high":
-        return "text-orange-600 bg-orange-50 border-orange-200";
-      case "emergency":
-        return "text-red-600 bg-red-50 border-red-200";
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200";
+  const saveAssessment = async () => {
+    if (!result || !user) return;
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/symptom-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          symptomsEntered: symptoms,
+          aiAssessment: JSON.stringify(result.possibleConditions),
+          urgencyLevel: result.urgencyLevel,
+          recommendedNextStep: result.recommendedNextStep
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert('Assessment saved successfully!');
+        setResult(null);
+        setSymptoms('');
+        setActiveTab('history');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      alert('Failed to save assessment');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const getSeverityIcon = (severity) => {
-    switch (severity) {
-      case "low":
-        return <CheckCircle className="h-5 w-5" />;
-      case "medium":
-        return <Info className="h-5 w-5" />;
-      case "high":
-        return <AlertTriangle className="h-5 w-5" />;
-      case "emergency":
-        return <AlertCircle className="h-5 w-5" />;
-      default:
-        return <Info className="h-5 w-5" />;
+  const deleteAssessment = async (id) => {
+    if (!confirm('Delete this assessment?')) return;
+    try {
+      await fetch(`/api/symptom-history?id=${id}&userId=${user.id}`, { method: 'DELETE' });
+      loadHistory();
+    } catch (error) {
+      console.error('Error deleting:', error);
     }
   };
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Heart className="h-12 w-12 text-blue-600 mx-auto animate-pulse mb-4" />
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  if (authLoading) return <Loader />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-white to-green-100">
-      {/* Header */}
-<header className="bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-300 sticky top-0 z-50">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="py-4 sm:py-6 flex flex-col gap-4 sm:gap-6">
-
-      {/* Back Button */}
-      <button
-        onClick={() => router.push("/dashboard")}
-        className="flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium w-fit"
-      >
-        <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6" />
-        <span className="text-sm sm:text-base">Back to Dashboard</span>
-      </button>
-
-      {/* Title Block */}
-      <div className="flex items-start sm:items-center gap-4 sm:gap-5">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-700 p-3 sm:p-4 rounded-2xl shadow-lg">
-          <Stethoscope className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
-        </div>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            AI Symptom Checker
-          </h1>
-          <p className="text-sm sm:text-base text-gray-700 font-medium">
-            Get AI-powered health insights instantly
-          </p>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</header>
-
-
-
-      <div className="max-w-7xl mx-auto px-8 py-12">
-        {/* Disclaimer */}
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-100 border-l-8 border-yellow-500 rounded-2xl shadow-xl p-6 mb-10">
-          <div className="flex items-start gap-4">
-            <div className="bg-yellow-500 p-3 rounded-xl">
-              <AlertTriangle className="h-6 w-6 text-white" />
-            </div>
+    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto space-y-6">
+        
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center space-x-4">
+            <button onClick={() => router.push('/dashboard')} className="p-2 text-slate-500 hover:text-slate-900 bg-white rounded-lg shadow-sm border border-slate-200">
+              <ArrowLeft className="h-5 w-5" />
+            </button>
             <div>
-              <p className="text-xl font-bold text-yellow-900 mb-2">
-                Important Medical Disclaimer
-              </p>
-              <p className="text-base text-yellow-800 leading-relaxed">
-                This AI tool provides general health information only and should
-                not replace professional medical advice. Always consult with a
-                healthcare provider for proper diagnosis and treatment.
-              </p>
+              <h1 className="text-2xl font-bold text-slate-900">AI Symptom Checker</h1>
+              <p className="text-sm text-slate-500">Get safe, AI-powered health guidance</p>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Left: Symptom Form */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-3xl shadow-lg border p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Describe Your Symptoms
-              </h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-lg font-semibold text-gray-700 mb-3">
-                    What symptoms are you experiencing?
-                  </label>
-                  <textarea
-                    value={symptoms}
-                    onChange={(e) => setSymptoms(e.target.value)}
-                    placeholder="Describe your symptoms in detail..."
-                    rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-base placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                  <p className="text-sm text-gray-500 mt-2">
-                    Include details like when symptoms started, their severity,
-                    and any triggers.
-                  </p>
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading || !symptoms.trim()}
-                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>Analyzing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Stethoscope className="h-5 w-5" />
-                      <span>Analyze Symptoms</span>
-                    </>
+        <Alert variant="warning" title="Important Medical Disclaimer">
+          This AI tool provides general health information only and should not replace professional medical advice. Always consult with a healthcare provider for proper diagnosis and treatment.
+        </Alert>
+
+        {/* Tabs */}
+        <div className="flex space-x-2 border-b border-slate-200 pb-px">
+          <button
+            onClick={() => setActiveTab('check')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center ${activeTab === 'check' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
+          >
+            <Stethoscope className="h-4 w-4 mr-2" /> New Check
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center ${activeTab === 'history' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
+          >
+            <History className="h-4 w-4 mr-2" /> Assessment History
+          </button>
+        </div>
+
+        {activeTab === 'check' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              {!result ? (
+                <Card>
+                  <h2 className="text-xl font-bold text-slate-900 mb-4">Describe Your Symptoms</h2>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <textarea
+                      value={symptoms}
+                      onChange={(e) => setSymptoms(e.target.value)}
+                      placeholder="e.g., I've had a severe headache and mild nausea for the past 2 days..."
+                      rows={6}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none resize-none"
+                      required
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading || !symptoms.trim()}
+                      className="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700 transition-colors flex justify-center items-center disabled:opacity-50"
+                    >
+                      {loading ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Analyzing...</> : <><Stethoscope className="h-5 w-5 mr-2" /> Analyze Symptoms</>}
+                    </button>
+                  </form>
+                </Card>
+              ) : (
+                <Card className="space-y-6 border-primary-200 shadow-md">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-slate-900">Analysis Complete</h3>
+                      <p className="text-sm text-slate-500 mt-1">AI-generated health information — not a diagnosis.</p>
+                    </div>
+                    <Badge variant={
+                      result.urgencyLevel === 'emergency' ? 'emergency' :
+                      result.urgencyLevel === 'urgent' ? 'warning' : 'success'
+                    }>
+                      {result.urgencyLevel.toUpperCase()}
+                    </Badge>
+                  </div>
+
+                  {result.urgencyLevel === 'emergency' && (
+                    <Alert variant="danger" title="Emergency">
+                      {result.recommendedNextStep}
+                    </Alert>
                   )}
-                </button>
-              </form>
-            </div>
+                  {result.urgencyLevel === 'urgent' && (
+                    <Alert variant="warning" title="Urgent">
+                      {result.recommendedNextStep}
+                    </Alert>
+                  )}
+                  {result.urgencyLevel === 'routine' && (
+                    <Alert variant="info" title="Routine">
+                      {result.recommendedNextStep}
+                    </Alert>
+                  )}
 
-            {/* Results */}
-            {result && (
-              <div className="mt-8 bg-white rounded-3xl shadow-lg border p-8 space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Analysis Results
-                  </h3>
-                  <div
-                    className={`px-3 py-1 rounded-full border text-sm font-semibold flex items-center gap-2 ${getSeverityColor(
-                      result.severity
-                    )}`}
-                  >
-                    {getSeverityIcon(result.severity)}
-                    <span className="capitalize">
-                      {result.severity} Priority
-                    </span>
-                  </div>
-                </div>
-
-                {/* Conditions */}
-                {result.possibleConditions?.length > 0 && (
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">
-                      Possible Conditions:
-                    </h4>
-                    <ul className="list-disc list-inside text-base text-gray-800 space-y-1">
-                      {result.possibleConditions.map((condition, idx) => (
-                        <li key={idx}>{condition}</li>
-                      ))}
+                    <h4 className="font-semibold text-slate-900 mb-2">Possible causes to discuss with a healthcare professional:</h4>
+                    <ul className="list-disc ml-5 text-slate-700 space-y-1">
+                      {result.possibleConditions.map((c, i) => <li key={i}>{c}</li>)}
                     </ul>
                   </div>
-                )}
 
-                {/* Recommendations */}
-                {result.recommendations && (
-                  <div className="space-y-5">
-                    {result.recommendations.immediate?.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-orange-700 mb-2 flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Immediate Actions:
-                        </h4>
-                        <ul className="list-disc ml-5 text-base text-gray-800 space-y-1">
-                          {result.recommendations.immediate.map((item, idx) => (
-                            <li key={idx}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                  {result.warningSigns && result.warningSigns.length > 0 && (
+                    <div className="bg-rose-50 p-4 rounded-xl border border-rose-200">
+                      <h4 className="font-semibold text-rose-900 mb-2 flex items-center">
+                        <AlertTriangle className="h-4 w-4 mr-2" /> Seek immediate attention if:
+                      </h4>
+                      <ul className="list-disc ml-5 text-rose-800 text-sm space-y-1">
+                        {result.warningSigns.map((w, i) => <li key={i}>{w}</li>)}
+                      </ul>
+                    </div>
+                  )}
 
-                    {result.recommendations.general?.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">
-                          General Care:
-                        </h4>
-                        <ul className="list-disc list-inside text-base text-gray-800 space-y-1">
-                          {result.recommendations.general.map((item, idx) => (
-                            <li key={idx}>{item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {result.recommendations.whenToSeekHelp && (
-                      <div className="bg-blue-100 p-4 rounded-lg">
-                        <h4 className="font-semibold text-blue-900 mb-1">
-                          When to Seek Help:
-                        </h4>
-                        <p className="text-base text-blue-800">
-                          {result.recommendations.whenToSeekHelp}
-                        </p>
-                      </div>
-                    )}
+                  <div className="flex space-x-3 pt-4 border-t border-slate-100">
+                    <button onClick={() => { setResult(null); setSymptoms(''); }} className="px-5 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors">Start Over</button>
+                    <button onClick={saveAssessment} disabled={isSaving} className="px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors flex items-center">
+                      {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />} Save Assessment
+                    </button>
                   </div>
-                )}
+                </Card>
+              )}
+            </div>
+            
+            <div className="space-y-6">
+              <Card className="bg-blue-50 border-blue-200">
+                <h3 className="font-bold text-blue-900 mb-3 flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> When to call 911</h3>
+                <ul className="text-sm text-blue-800 space-y-2">
+                  <li>• Severe chest pain or pressure</li>
+                  <li>• Difficulty breathing</li>
+                  <li>• Sudden numbness or weakness</li>
+                  <li>• Severe bleeding</li>
+                </ul>
+              </Card>
+            </div>
+          </div>
+        )}
 
-                {/* Warning Signs */}
-                {result.warningSigns?.length > 0 && (
-                  <div className="bg-red-100 p-4 rounded-lg">
-                    <h4 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      Seek Immediate Medical Attention If:
-                    </h4>
-                    <ul className="list-disc list-inside text-base text-red-800 space-y-1">
-                      {result.warningSigns.map((sign, idx) => (
-                        <li key={idx}>{sign}</li>
-                      ))}
-                    </ul>
+        {activeTab === 'history' && (
+          <div className="space-y-4">
+            {history.length > 0 ? (
+              history.map(item => (
+                <Card key={item.id} className="flex flex-col md:flex-row md:items-start gap-4">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="h-5 w-5 text-primary-500" />
+                        <span className="text-sm text-slate-500 font-medium">{new Date(item.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <Badge variant={
+                        item.urgency_level === 'emergency' ? 'emergency' :
+                        item.urgency_level === 'urgent' ? 'warning' : 'default'
+                      }>
+                        {item.urgency_level}
+                      </Badge>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-700">Symptoms:</h4>
+                      <p className="text-slate-900 mt-1">"{item.symptoms_entered}"</p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                      <p className="text-sm text-slate-700 font-medium">{item.recommended_next_step}</p>
+                    </div>
                   </div>
-                )}
-
-                <div className="bg-gray-100 p-3 rounded-lg text-sm text-gray-700 italic">
-                  {result.disclaimer}
-                </div>
-              </div>
+                  <button onClick={() => deleteAssessment(item.id)} className="text-slate-400 hover:text-rose-600 transition-colors p-2 md:mt-0 mt-2">
+                    Delete
+                  </button>
+                </Card>
+              ))
+            ) : (
+              <EmptyState title="No past assessments" description="Your saved symptom checks will appear here." />
             )}
           </div>
-
-          {/* Right: Sidebar */}
-          <div className="space-y-8">
-        
-
-            {/* Emergency Numbers */}
-            <div className="bg-red-100 border border-red-200 rounded-3xl p-6">
-              <h3 className="text-lg font-bold text-red-900 mb-4 flex items-center gap-2">
-                <AlertCircle className="h-5 w-5" /> Emergency Numbers
-              </h3>
-              <div className="space-y-2 text-base">
-                <div className="flex justify-between text-red-800">
-                  <span>Ambulance:</span>
-                  <a href="tel:102" className="text-red-700 font-semibold">
-                    102
-                  </a>
-                </div>
-                <div className="flex justify-between text-red-800">
-                  <span>Fire:</span>
-                  <a href="tel:101" className="text-red-700 font-semibold">
-                    101
-                  </a>
-                </div>
-                <div className="flex justify-between text-red-800">
-                  <span>Police:</span>
-                  <a href="tel:100" className="text-red-700 font-semibold">
-                    100
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Tips */}
-            <div className="bg-blue-100 border border-blue-300 rounded-3xl p-6">
-              <h3 className="text-lg font-bold text-blue-900 mb-4">
-                Tips for Better Results
-              </h3>
-              <ul className="text-base text-blue-800 space-y-2">
-                <li className="flex gap-2 items-start">
-                  <span>•</span>
-                  <span>Describe symptoms in detail</span>
-                </li>
-                <li className="flex gap-2 items-start">
-                  <span>•</span>
-                  <span>Mention when symptoms started</span>
-                </li>
-                <li className="flex gap-2 items-start">
-                  <span>•</span>
-                  <span>Include severity and triggers</span>
-                </li>
-                <li className="flex gap-2 items-start">
-                  <span>•</span>
-                  <span>Always consult a doctor for serious concerns</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
