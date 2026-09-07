@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   MapPin, Phone, Clock, Star, Navigation, ArrowLeft,
-  Search, Loader2, Hospital, Building, Cross, Activity, AlertCircle, ExternalLink, Info, Calendar as CalendarIcon, XCircle
+  Search, Loader2, Hospital, Building, Cross, Activity, AlertCircle, ExternalLink, Info, Calendar as CalendarIcon, XCircle, CheckCircle
 } from "lucide-react";
 
 import { useProtectedUser } from "@/hooks/useProtectedUser";
@@ -12,6 +12,8 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import EmptyState from "@/components/ui/EmptyState";
 import Alert from "@/components/ui/Alert";
+
+import Toast from "@/components/ui/Toast";
 
 export default function FacilityFinderPage() {
   const [facilities, setFacilities] = useState([]);
@@ -42,6 +44,8 @@ export default function FacilityFinderPage() {
     { value: "emergency", label: "Emergency", icon: AlertCircle },
   ];
 
+  const [toast, setToast] = useState(null);
+
   const searchFacilities = async () => {
     if (!user || !selectedCity.trim()) return;
     setLoading(true);
@@ -52,7 +56,7 @@ export default function FacilityFinderPage() {
       const response = await fetch(`/api/find-facility?${params}`);
       const data = await response.json();
       if (data.success) {
-        setFacilities(data.data);
+        setFacilities(data.data.map(f => ({ ...f, isBooked: false })));
       }
     } catch (error) {
       console.error("Error searching facilities:", error);
@@ -66,14 +70,13 @@ export default function FacilityFinderPage() {
     if (!user || !bookingFacility || !bookingData.date || !bookingData.time) return;
     setIsBooking(true);
     try {
-      // Create appointment in database
       const datetime = new Date(`${bookingData.date}T${bookingData.time}`).toISOString();
       const res = await fetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: user.id,
-          facilityId: bookingFacility.id, // Using the mocked ID or real ID
+          facilityId: bookingFacility.id,
           doctorName: 'General Consultation',
           appointmentDate: datetime,
           reason: bookingData.reason || 'General checkup'
@@ -81,15 +84,17 @@ export default function FacilityFinderPage() {
       });
       const data = await res.json();
       if (data.success) {
-        alert('Appointment booked successfully!');
+        setToast({ message: 'Appointment booked successfully!', type: 'success' });
+        // Update local state to show it's booked dynamically
+        setFacilities(facilities.map(f => f.id === bookingFacility.id ? { ...f, isBooked: true } : f));
         setBookingFacility(null);
         setBookingData({ date: '', time: '', reason: '' });
       } else {
-        alert(data.error || 'Failed to book');
+        setToast({ message: data.error || 'Failed to book', type: 'error' });
       }
     } catch (error) {
       console.error('Booking error:', error);
-      alert('Error booking appointment');
+      setToast({ message: 'Error booking appointment', type: 'error' });
     } finally {
       setIsBooking(false);
     }
@@ -99,6 +104,7 @@ export default function FacilityFinderPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header */}
@@ -169,9 +175,15 @@ export default function FacilityFinderPage() {
                 </div>
                 
                 <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-100">
-                  <button onClick={() => setBookingFacility(facility)} className="flex-1 bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors">
-                    Book Appointment
-                  </button>
+                  {facility.isBooked ? (
+                    <button disabled className="flex-1 bg-emerald-100 text-emerald-700 py-2 rounded-lg font-bold flex justify-center items-center">
+                      <CheckCircle className="h-4 w-4 mr-2" /> Booked!
+                    </button>
+                  ) : (
+                    <button onClick={() => setBookingFacility(facility)} className="flex-1 bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors">
+                      Book Appointment
+                    </button>
+                  )}
                   <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(facility.address)}`, "_blank")} className="flex-1 bg-slate-100 text-slate-700 py-2 rounded-lg font-medium hover:bg-slate-200 transition-colors flex justify-center items-center">
                     <Navigation className="h-4 w-4 mr-1" /> Map
                   </button>
@@ -186,8 +198,8 @@ export default function FacilityFinderPage() {
 
       {/* Booking Modal */}
       {bookingFacility && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
-          <Card className="w-full max-w-md">
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <Card className="w-full max-w-md animate-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-slate-900">Book Appointment</h3>
               <button onClick={() => setBookingFacility(null)} className="text-slate-400 hover:text-slate-600"><XCircle className="h-6 w-6" /></button>

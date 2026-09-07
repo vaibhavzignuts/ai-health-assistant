@@ -7,6 +7,8 @@ import Loader from '@/components/ui/Loader';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import EmptyState from '@/components/ui/EmptyState';
+import Toast from '@/components/ui/Toast';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 export default function MedicineRemindersPage() {
   const [reminders, setReminders] = useState([]);
@@ -85,6 +87,9 @@ export default function MedicineRemindersPage() {
     setFormData(prev => ({ ...prev, times: newTimes }));
   };
 
+  const [toast, setToast] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) return;
@@ -105,13 +110,15 @@ export default function MedicineRemindersPage() {
       const data = await response.json();
       
       if (data.success) {
+        setToast({ message: 'Reminder saved successfully', type: 'success' });
         await loadData(user.id);
         resetForm();
       } else {
-        alert(data.error || 'Failed to save reminder');
+        setToast({ message: data.error || 'Failed to save reminder', type: 'error' });
       }
     } catch (error) {
       console.error('Error saving:', error);
+      setToast({ message: 'Error saving reminder', type: 'error' });
     }
   };
 
@@ -136,13 +143,21 @@ export default function MedicineRemindersPage() {
     setActiveTab('reminders');
   };
 
-  const handleDelete = async (reminderId) => {
-    if (!confirm('Delete this reminder?')) return;
+  const handleDeleteClick = (reminderId) => {
+    setConfirmDelete(reminderId);
+  };
+
+  const performDelete = async () => {
+    if (!confirmDelete) return;
     try {
-      await fetch(`/api/medicine-reminders?reminderId=${reminderId}&userId=${user.id}`, { method: 'DELETE' });
+      await fetch(`/api/medicine-reminders?reminderId=${confirmDelete}&userId=${user.id}`, { method: 'DELETE' });
+      setToast({ message: 'Reminder deleted', type: 'success' });
       await loadData(user.id);
     } catch (error) {
       console.error('Delete error:', error);
+      setToast({ message: 'Failed to delete reminder', type: 'error' });
+    } finally {
+      setConfirmDelete(null);
     }
   };
 
@@ -175,6 +190,16 @@ export default function MedicineRemindersPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <ConfirmModal 
+        isOpen={!!confirmDelete} 
+        title="Delete Medication" 
+        message="Are you sure you want to delete this medication? This action cannot be undone." 
+        confirmText="Delete" 
+        isDestructive={true} 
+        onConfirm={performDelete} 
+        onCancel={() => setConfirmDelete(null)} 
+      />
       <div className="max-w-5xl mx-auto space-y-6">
         
         {/* Header */}
@@ -348,7 +373,7 @@ export default function MedicineRemindersPage() {
                       </div>
                       <div className="flex space-x-1">
                         <button onClick={() => handleEdit(rem)} className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-md transition-colors"><Edit3 className="h-4 w-4" /></button>
-                        <button onClick={() => handleDelete(rem.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"><Trash2 className="h-4 w-4" /></button>
+                        <button onClick={() => handleDeleteClick(rem.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </div>
                     <div className="bg-slate-50 p-3 rounded-lg text-sm text-slate-600 space-y-1 mt-auto">

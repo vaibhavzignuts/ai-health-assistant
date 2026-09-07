@@ -8,6 +8,8 @@ import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Alert from '@/components/ui/Alert';
 import EmptyState from '@/components/ui/EmptyState';
+import Toast from '@/components/ui/Toast';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 export default function SymptomCheckerPage() {
   const [symptoms, setSymptoms] = useState("");
@@ -37,6 +39,9 @@ export default function SymptomCheckerPage() {
     }
   };
 
+  const [toast, setToast] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!symptoms.trim() || !user) return;
@@ -55,11 +60,11 @@ export default function SymptomCheckerPage() {
       if (data.success) {
         setResult(data.data);
       } else {
-        alert(data.error || "Failed to analyze symptoms");
+        setToast({ message: data.error || "Failed to analyze symptoms", type: 'error' });
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Failed to analyze symptoms. Please try again.");
+      setToast({ message: "Failed to analyze symptoms. Please try again.", type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -82,26 +87,30 @@ export default function SymptomCheckerPage() {
       });
       const data = await response.json();
       if (data.success) {
-        alert('Assessment saved successfully!');
+        setToast({ message: 'Assessment saved successfully!', type: 'success' });
         setResult(null);
         setSymptoms('');
         setActiveTab('history');
       }
     } catch (error) {
       console.error('Error saving:', error);
-      alert('Failed to save assessment');
+      setToast({ message: 'Failed to save assessment', type: 'error' });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const deleteAssessment = async (id) => {
-    if (!confirm('Delete this assessment?')) return;
+  const deleteAssessment = async () => {
+    if (!confirmDelete) return;
     try {
-      await fetch(`/api/symptom-history?id=${id}&userId=${user.id}`, { method: 'DELETE' });
+      await fetch(`/api/symptom-history?id=${confirmDelete}&userId=${user.id}`, { method: 'DELETE' });
+      setToast({ message: 'Assessment deleted', type: 'success' });
       loadHistory();
     } catch (error) {
       console.error('Error deleting:', error);
+      setToast({ message: 'Failed to delete assessment', type: 'error' });
+    } finally {
+      setConfirmDelete(null);
     }
   };
 
@@ -109,6 +118,16 @@ export default function SymptomCheckerPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <ConfirmModal 
+        isOpen={!!confirmDelete} 
+        title="Delete Assessment" 
+        message="Are you sure you want to delete this symptom assessment? This action cannot be undone." 
+        confirmText="Delete" 
+        isDestructive={true} 
+        onConfirm={deleteAssessment} 
+        onCancel={() => setConfirmDelete(null)} 
+      />
       <div className="max-w-5xl mx-auto space-y-6">
         
         {/* Header */}
@@ -267,7 +286,7 @@ export default function SymptomCheckerPage() {
                       <p className="text-sm text-slate-700 font-medium">{item.recommended_next_step}</p>
                     </div>
                   </div>
-                  <button onClick={() => deleteAssessment(item.id)} className="text-slate-400 hover:text-rose-600 transition-colors p-2 md:mt-0 mt-2">
+                  <button onClick={() => setConfirmDelete(item.id)} className="text-slate-400 hover:text-rose-600 transition-colors p-2 md:mt-0 mt-2">
                     Delete
                   </button>
                 </Card>
