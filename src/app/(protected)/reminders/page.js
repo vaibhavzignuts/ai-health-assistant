@@ -242,7 +242,7 @@ export default function MedicineRemindersPage() {
             onClick={() => setActiveTab('today')}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'today' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'}`}
           >
-            Today's Schedule
+            Today&apos;s Schedule
           </button>
           <button
             onClick={() => setActiveTab('reminders')}
@@ -302,7 +302,7 @@ export default function MedicineRemindersPage() {
             ) : (
               <EmptyState 
                 title="No medications today" 
-                description="You don't have any medications scheduled for today." 
+                description="You don&apos;t have any medications scheduled for today." 
                 action={<button onClick={() => { setActiveTab('reminders'); setShowAddForm(true); }} className="text-primary-600 font-medium">Add a medication</button>}
               />
             )}
@@ -388,7 +388,7 @@ export default function MedicineRemindersPage() {
             {!showAddForm && reminders.length === 0 && (
               <EmptyState 
                 title="No medications added" 
-                description="You haven't set up any medication reminders yet." 
+                description="You haven&apos;t set up any medication reminders yet." 
                 action={<button onClick={() => setShowAddForm(true)} className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl shadow-sm transition-colors font-medium">Add Medication</button>}
               />
             )}

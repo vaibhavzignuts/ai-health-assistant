@@ -25,6 +25,7 @@ export default function SymptomCheckerPage() {
     if (user && activeTab === 'history') {
       loadHistory();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, activeTab]);
 
   const loadHistory = async () => {
@@ -280,7 +281,7 @@ export default function SymptomCheckerPage() {
                     </div>
                     <div>
                       <h4 className="text-sm font-semibold text-slate-700">Symptoms:</h4>
-                      <p className="text-slate-900 mt-1">"{item.symptoms_entered}"</p>
+                      <p className="text-slate-900 mt-1">&quot;{item.symptoms_entered}&quot;</p>
                     </div>
                     <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
                       <p className="text-sm text-slate-700 font-medium">{item.recommended_next_step}</p>

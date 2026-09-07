@@ -16,6 +16,7 @@ export default function PatientSummaryPage() {
 
   useEffect(() => {
     if (user) loadSummary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const loadSummary = async () => {
@@ -88,7 +89,7 @@ export default function PatientSummaryPage() {
                   <div key={med.id} className="p-4 bg-slate-50 rounded-xl border border-slate-100 print:border-slate-300">
                     <h3 className="font-bold text-slate-900">{med.medicine_name}</h3>
                     <p className="text-sm text-slate-600 mt-1">{med.dosage} • {med.frequency.replace('_', ' ')}</p>
-                    {med.notes && <p className="text-xs text-slate-500 mt-2 italic">"{med.notes}"</p>}
+                    {med.notes && <p className="text-xs text-slate-500 mt-2 italic">&quot;{med.notes}&quot;</p>}
                   </div>
                 ))}
               </div>
@@ -108,7 +109,7 @@ export default function PatientSummaryPage() {
                   <div key={check.id} className="p-4 bg-slate-50 rounded-xl border border-slate-100 print:border-slate-300 flex justify-between items-start">
                     <div className="pr-4">
                       <p className="text-sm text-slate-500 mb-1">{new Date(check.created_at).toLocaleDateString()}</p>
-                      <p className="font-medium text-slate-900">"{check.symptoms_entered}"</p>
+                      <p className="font-medium text-slate-900">&quot;{check.symptoms_entered}&quot;</p>
                     </div>
                     <Badge variant={check.urgency_level === 'emergency' ? 'emergency' : check.urgency_level === 'urgent' ? 'warning' : 'default'} className="print:text-black print:bg-white print:border-slate-400">
                       {check.urgency_level}
@@ -143,7 +144,7 @@ export default function PatientSummaryPage() {
           {/* Add a new question (Hidden in print) */}
           <section className="print:hidden border-t border-slate-200 pt-8">
             <Alert variant="info" title="Tip">
-              Keep track of questions that come to mind before your appointment so you don't forget to ask them.
+              Keep track of questions that come to mind before your appointment so you don&apos;t forget to ask them.
             </Alert>
           </section>
 

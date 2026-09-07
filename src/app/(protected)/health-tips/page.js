@@ -81,6 +81,7 @@ export default function HealthTips() {
   if (profile) {
     generateHealthTips(profile.id, selectedCategory);
   }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [selectedCategory, profile]);
 
   const handleCategoryChange = (category) => {
